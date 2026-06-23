@@ -15,19 +15,33 @@ const CourseDetailsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [isEnrolledState, setIsEnrolledState] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const [courseRes, reviewsRes] = await Promise.all([
         api.get(`/courses/${id}`),
         api.get(`/reviews/course/${id}`)
       ]);
       setData(courseRes.data.data);
       setReviews(reviewsRes.data.data || []);
+
+      // Check enrollment
+      if (user) {
+        try {
+          const enrollRes = await api.get('/enrollments/my-courses');
+          const myCourses = enrollRes.data.data || [];
+          const enrolled = myCourses.some(e => e.course?._id === id);
+          setIsEnrolledState(enrolled);
+        } catch (err) {
+          console.error(err);
+        }
+      }
     } catch (error) {
       toast.error('فشل تحميل الكورس');
     } finally {
@@ -49,7 +63,7 @@ const CourseDetailsPage = () => {
 
       await api.post(endpoint);
       toast.success('تم الاشتراك بنجاح! 🎉');
-      navigate('/my-learning');
+      setIsEnrolledState(true);
     } catch (error) {
       toast.error(error?.response?.data?.message || 'فشل الاشتراك');
     } finally {
@@ -96,19 +110,27 @@ const CourseDetailsPage = () => {
               <h2 className="text-2xl font-bold text-slate-900 mb-4">محتوى الكورس ({lessons.length} درس)</h2>
               <div className="space-y-3">
                 {lessons.map((l, i) => (
-                  <div key={l._id} className="card p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 text-sm font-bold flex items-center justify-center">
+                  <div key={l._id} className="card p-4 flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 text-sm font-bold flex items-center justify-center flex-shrink-0">
                         {i + 1}
                       </span>
-                      <div>
-                        <p className="font-semibold">{l.title}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate">{l.title}</p>
                         <p className="text-xs text-slate-500">{l.section}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       {l.isFreePreview && <span className="badge bg-emerald-100 text-emerald-700">معاينة</span>}
                       <span className="text-sm text-slate-500">{l.duration} د</span>
+                      {(l.isFreePreview || isEnrolledState) && l.videoUrl && (
+                        <button
+                          onClick={() => navigate(`/learn/${course._id}`)}
+                          className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold"
+                        >
+                          ▶ مشاهدة
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -146,13 +168,23 @@ const CourseDetailsPage = () => {
               </span>
             </div>
 
-            <button
-              onClick={handleEnroll}
-              disabled={enrolling}
-              className="btn-primary w-full mt-6"
-            >
-              {enrolling ? 'جاري التنفيذ...' : finalPrice === 0 ? 'اشترك مجاناً' : 'اشترِ الآن'}
-            </button>
+            {isEnrolledState ? (
+              <button
+                onClick={() => navigate(`/learn/${course._id}`)}
+                className="btn-primary w-full mt-6"
+                style={{ background: '#10b981' }}
+              >
+                ▶ متابعة التعلم
+              </button>
+            ) : (
+              <button
+                onClick={handleEnroll}
+                disabled={enrolling}
+                className="btn-primary w-full mt-6"
+              >
+                {enrolling ? 'جاري التنفيذ...' : finalPrice === 0 ? 'اشترك مجاناً' : 'اشترِ الآن'}
+              </button>
+            )}
 
             <div className="mt-6 space-y-3 text-sm text-slate-600">
               <p>• وصول كامل مدى الحياة</p>

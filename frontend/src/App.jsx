@@ -12,6 +12,7 @@ import MyLearningPage from './pages/MyLearningPage';
 import ProfilePage from './pages/ProfilePage';
 import InstructorDashboard from './pages/InstructorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import WatchCoursePage from './pages/WatchCoursePage';
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
           } />
           <Route path="/my-learning" element={
             <ProtectedRoute><MyLearningPage /></ProtectedRoute>
+          } />
+          <Route path="/learn/:courseId" element={
+            <ProtectedRoute><WatchCoursePage /></ProtectedRoute>
           } />
           <Route path="/instructor" element={
             <ProtectedRoute roles={['instructor', 'admin']}><InstructorDashboard /></ProtectedRoute>

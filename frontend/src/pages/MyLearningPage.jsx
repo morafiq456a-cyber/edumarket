@@ -48,9 +48,9 @@ const MyLearningPage = () => {
 
             return (
               <div key={e._id} className="card grid md:grid-cols-[220px_1fr] gap-5 p-5">
-                <img src={image} className="h-44 w-full rounded-2xl object-cover" />
+                <img src={image} alt={course.title} className="h-44 w-full rounded-2xl object-cover" />
                 <div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <h2 className="text-2xl font-bold">{course.title}</h2>
                     {e.isCompleted && <span className="badge bg-emerald-100 text-emerald-700">✅ مكتمل</span>}
                   </div>
@@ -71,8 +71,16 @@ const MyLearningPage = () => {
                     </div>
                   </div>
 
-                  <div className="mt-5 flex gap-3">
-                    <Link to={`/courses/${course._id}`} className="btn-outline">تفاصيل</Link>
+                  <div className="mt-5 flex gap-3 flex-wrap">
+                    <Link
+                      to={`/learn/${course._id}`}
+                      className="btn-primary"
+                    >
+                      ▶ {e.isCompleted ? 'مراجعة الكورس' : 'متابعة التعلم'}
+                    </Link>
+                    <Link to={`/courses/${course._id}`} className="btn-outline">
+                      تفاصيل الكورس
+                    </Link>
                   </div>
                 </div>
               </div>
